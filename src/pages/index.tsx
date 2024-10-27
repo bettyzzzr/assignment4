@@ -2,7 +2,6 @@ import Head from "next/head";
 import Image from "next/image";
 import localFont from "next/font/local";
 import styles from "@/styles/Home.module.css";
-import Charts from '../pages/assignment4_ziruizou.js';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -110,7 +109,6 @@ export default function Home() {
               width={16}
               height={16}
             />
-            <Charts />
             Go to nextjs.org →
           </a>
         </footer>

@@ -1,4 +1,3 @@
-
 import React from 'react'
 import * as d3 from "d3"
 import 'bootstrap/dist/css/bootstrap.css'
@@ -25,14 +24,15 @@ function useData(csvPath){
     }, []);
     return dataAll;
 }
-
 const Charts = () => {
-    const [hoveredStation, setHoveredStation] = useState(null); // 当前悬停的站点名称
-    const [tooltipData, setTooltipData] = useState(null); // Tooltip 的数据
-    const [tooltipX, setTooltipX] = useState(null); // Tooltip X 坐标
-    const [tooltipY, setTooltipY] = useState(null); // Tooltip Y 坐标
-
+    const [month, setMonth] = React.useState('4');
+    const [hoveredStation, setHoveredStation] = React.useState(null);
+    //Q1.5 define hooks to link the points and bars
+    //Notes: you should define the hooks at the beginning of the component; a hook cannot be defined after the if ... else... statement;
+    const [tooltipData, setTooltipData] = React.useState(null);
+    const [tooltipPos, setTooltipPos] = React.useState({x: 0, y: 0});
     const dataAll = useData(csvUrl);
+
     if (!dataAll) {
         return <pre>Loading...</pre>;
     };
@@ -43,44 +43,32 @@ const Charts = () => {
     const innerHeightBar = HEIGHT - margin.top - margin.bottom-120;
     const innerWidth = WIDTH - margin.left - margin.right;
     const MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const data = dataAll.filter( d => { 
-        return d.month === MONTH[month] 
+    const data = dataAll.filter( d => {
+        return d.month === MONTH[month]
     });
 
-   
     const xScaleScatter = d3.scaleLinear()
-        .domain([0, d3.max(dataAll, d => d.tripdurationS)])
-        .range([0, innerWidth])
-        .nice();
+                            .domain([0, d3.max(dataAll, d => d.tripdurationS)])
+                            .range([0, innerWidth])
+                            .nice();
     const yScaleScatter = d3.scaleLinear()
-        .domain([0, d3.max(dataAll, d => d.tripdurationE)])
-        .range([innerHeightScatter, 0])
-        .nice();
+                            .domain([0, d3.max(dataAll, d => d.tripdurationE)])
+                            .range([innerHeightScatter, 0])
+                            .nice();
 
 //Q1.2: Complete the xScaleBar and yScaleBar
 //Hint: use d3.scaleBand for xScaleBar
     const xScaleBar = d3.scaleBand()
-    .domain(data.map(d => d.station)) 
-    .range([0, innerWidth])
-    .padding(0.1);
+                        .domain(data.map(d => d.station))
+                        .range([innerWidth, 0])
+                        .padding(0.1);
+
     const yScaleBar = d3.scaleLinear()
-    .domain([0, d3.max(data, d => d.start)]) // start 是柱状图的高度值
-    .range([innerHeightBar, 0])
-    .nice();
+                        .domain([0, d3.max(dataAll, d => d.start)])
+                        .range([innerHeightBar, 0])
+                        .nice();
 
-    const handleMouseEnter = (station, event, data) => {
-        setHoveredStation(station);
-        setTooltipData(data);
-        setTooltipX(event.pageX);
-        setTooltipY(event.pageY);
-    };
-
-    const handleMouseOut = () => {
-        setHoveredStation(null);
-        setTooltipData(null);
-        setTooltipX(null);
-        setTooltipY(null);
-    };
+    const changeHandler = (event) => {setMonth(event.target.value);};
 
     return (
         <Container >
@@ -89,31 +77,44 @@ const Charts = () => {
                     <input key="slider" type='range' min='0' max='11' value={month} step='1' onChange={changeHandler}/>
                     <input key="monthText" type="text" value={MONTH[month]} readOnly/>
                 </Col>
-                
             </Row>
             <Row className='justify-content-md-center'>
                 <Col>
                     <svg width={WIDTH} height={HEIGHT}>
-                        <ScatterPlot offsetX={margin.left} offsetY={margin.top} data={data} xScale={xScaleScatter} yScale={yScaleScatter} 
-                        height={innerHeightScatter} width={innerWidth}hoveredStation={hoveredStation} // 传递状态
-                        onMouseEnter={handleMouseEnter}
-                        onMouseOut={handleMouseOut}/>
+                        <ScatterPlot offsetX={margin.left} offsetY={margin.top} data={data}
+                                    xScale={xScaleScatter} yScale={yScaleScatter}
+                                    height={innerHeightScatter} width={innerWidth}
+                                    hoveredStation={hoveredStation}
+                                    onMouseEnter={setHoveredStation} onMouseOut={() => setHoveredStation(null)}
+                                    setTooltipData={setTooltipData} setTooltipPos={setTooltipPos}
+                        />
                     </svg>
                 </Col>
                 <Col>
                     <svg width={WIDTH} height={HEIGHT}>
-                        <BarChart offsetX={margin.left} offsetY={margin.top} data={data} xScale={xScaleBar} 
-                        yScale={yScaleBar} height={innerHeightBar} width={innerWidth}hoveredStation={hoveredStation} // 传递状态
-                        onMouseEnter={handleMouseEnter}
-                        onMouseOut={handleMouseOut}/>
+                        <BarChart offsetX={margin.left} offsetY={margin.top} data={data}
+                        xScale={xScaleBar} yScale={yScaleBar}
+                        height={innerHeightBar} width={innerWidth}
+                        hoveredStation={hoveredStation}
+                        onMouseEnter={setHoveredStation} onMouseOut={() => setHoveredStation(null)}/>
                     </svg>
                 </Col>
             </Row>
-            <Tooltip x={tooltipX} y={tooltipY} station={hoveredStation} /> {/* 添加 Tooltip */}
+            {/* Q1.6: add the Tooltip
+            1. you should get the selected pointed first and pass it to the <Tooltip />
+            2. you should define the hooks for X and Y coordinates of the tooltip; 
+            3. to get the position of the mouse event, you can use event.pageX and event.pageY;
+            */}
+            {tooltipData && (
+                <Tooltip
+                    x={tooltipPos.x}
+                    y={tooltipPos.y}
+                    d={tooltipData}
+                />
+            )}
         </Container>
-    )   
+    )
 }
-
 
 export default Charts
 
