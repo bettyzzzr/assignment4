@@ -7,10 +7,11 @@ function YAxis(props) {
 
     useEffect(() => {
         if (yScale) {
-            const axis = axisLeft(yScale);
+            const axis = axisLeft(yScale)
+                .ticks(Math.max(1, height / 50)); 
             select(axisRef.current).call(axis);
         }
-    }, [yScale]);
+    }, [yScale,height]);
 
     return (
         <g>
@@ -18,7 +19,7 @@ function YAxis(props) {
             <svg>
                 <text
                     style={{ textAnchor: 'end', fontSize: '15px' }} 
-                    transform={`translate(15, 0) rotate(-90)`}
+                    transform={`translate(-40, ${height / 2}) rotate(-90)`}
                 >
                     {axisLabel}
                 </text>

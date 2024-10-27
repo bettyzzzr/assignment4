@@ -9,10 +9,11 @@ import Tooltip from './components/tooltips'
 
 const csvUrl = 'https://gist.githubusercontent.com/hogwild/3b9aa737bde61dcb4dfa60cde8046e04/raw/citibike2020.csv'
 
-function useData(csvPath){
+function useData(csvUrl){
     const [dataAll, setData] = React.useState(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     React.useEffect(()=>{
-        d3.csv(csvPath).then(data => {
+        d3.csv(csvUrl).then(data => {
             data.forEach(d => {
                 d.start = +d.start;
                 d.tripdurationS = +d.tripdurationS;
@@ -21,7 +22,7 @@ function useData(csvPath){
             });
             setData(data);
         });
-    }, []);
+    }, [csvUrl]);
     return dataAll;
 }
 const Charts = () => {
